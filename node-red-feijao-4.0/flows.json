@@ -1,0 +1,142 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "499b78eb68be01f6",
+        "type": "MySQLdatabase",
+        "name": "",
+        "host": "mysql",
+        "port": "3306",
+        "db": "feijao_db",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "78ae6320d945fea8",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [],
+        "repeat": "2",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "2",
+        "topic": "",
+        "x": 190,
+        "y": 400,
+        "wires": [
+            [
+                "45fc87fcbb64cc0a"
+            ]
+        ]
+    },
+    {
+        "id": "45fc87fcbb64cc0a",
+        "type": "http request",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "feijao4.0:3000/lista",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 390,
+        "y": 400,
+        "wires": [
+            [
+                "9165953a983cf771",
+                "b90a13b34daecab4"
+            ]
+        ]
+    },
+    {
+        "id": "ecb8f10ca12c184f",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "beca1e9fca8464e5",
+        "type": "mysql",
+        "z": "f6f2187d.f17ca8",
+        "mydb": "499b78eb68be01f6",
+        "name": "",
+        "x": 780,
+        "y": 400,
+        "wires": [
+            [
+                "ecb8f10ca12c184f"
+            ]
+        ]
+    },
+    {
+        "id": "9165953a983cf771",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 1",
+        "func": "const useDb = \"USE feijao_db;\";\n\nconst sqlDeletar = \"DELETE FROM lista;\";\n\nconst sqlPessoas = msg.payload.map(pessoa => {\n    return `INSERT INTO lista (id, nome, baiana) VALUES (\"${pessoa.id}\", \"${pessoa.nome}\", ${pessoa.baiana});`;\n}).join(\"\");\n\nmsg.topic = sqlDeletar + sqlPessoas;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 400,
+        "wires": [
+            [
+                "beca1e9fca8464e5"
+            ]
+        ]
+    },
+    {
+        "id": "b90a13b34daecab4",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 2",
+        "func": "const pessoas = msg.payload;\n\nconst totalFeijoadasBaianas = () => {\n    const qntBaianas = pessoas.filter(\n        (pessoa) => pessoa.baiana\n    ).length;\n    const aPedir = Math.trunc((qntBaianas / 3));\n    const meia = Math.trunc((qntBaianas % 3)) >= 1 || (qntBaianas > 1 && qntBaianas < 3) ? 1 : 0;\n    return [aPedir, meia];\n}\n\nconst totalFeijoadasCariocas = () => {\n    const qntCariocas = pessoas.filter(\n        (pessoa) => !pessoa.baiana\n    ).length;\n    const aPedir = Math.trunc((qntCariocas / 3));\n    const meia = Math.trunc((qntCariocas % 3)) >= 1 || (qntCariocas > 1 && qntCariocas < 3) ? 1 : 0;\n    return [aPedir, meia];\n}\n\nconst useDb = \"USE feijao_db;\";\nconst updateCarioca = `UPDATE quantidades SET inteiras = ${totalFeijoadasCariocas()[0]}, meias = ${totalFeijoadasCariocas()[1]} WHERE tipo=\"carioca\";`;\nconst updateBaiana = `UPDATE quantidades SET inteiras = ${totalFeijoadasBaianas()[0]}, meias = ${totalFeijoadasBaianas()[1]} WHERE tipo=\"baiana\";`;\n\nmsg.topic = useDb + updateBaiana + updateCarioca;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 500,
+        "wires": [
+            [
+                "beca1e9fca8464e5"
+            ]
+        ]
+    }
+]

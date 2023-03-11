@@ -1,0 +1,6 @@
+/node_modules
+/src
+/.vscode
+nodemon.json
+tsconfig.json
+.env

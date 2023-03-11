@@ -1,0 +1,36 @@
+services:
+  node-red:
+    image: node-red-feijao-4.0:latest
+    volumes:
+      - node-red-vol:/data
+    networks:
+      - feijao-net
+    ports:
+      - 1880:1880
+  mysql:
+    image: mysql-feijao-4.0:latest
+    networks:
+      - feijao-net
+    ports:
+      - 3306:3306
+  feijao4.0:
+    image: feijao-4.0:latest
+    volumes:
+      - feijao-4.0-vol:/public
+    networks:
+      - feijao-net
+    ports:
+      - 3000:3000
+    environment:
+      GROUPS: '["Teste"]'
+  grafana:
+    image: grafana-feijao-4.0:latest
+    networks:
+      - feijao-net
+    ports:
+      - 3001:3000
+networks:
+  feijao-net:
+volumes:
+  node-red-vol:
+  feijao-4.0-vol:
