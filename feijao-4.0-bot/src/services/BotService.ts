@@ -31,16 +31,19 @@ bot.on('message_create', async (message) => {
     if (!mencoes.length) {
       if (/^carioca$/i.test(message.body)) {
         const contact = await message.getContact();
+        const pessoa = new Pessoa({
+          nome: `${contact.pushname}`.trim() || contact.number,
+          baiana: false,
+          id: contact.id.user,
+        });
+        if (ListaService.checkIfPessoaExists(pessoa))
+          return await message.reply(`Você já está na lista!`, undefined, {
+            quotedMessageId: message.id.id,
+          });
         await ListaService.removeFromList(contact.id.user);
-        const posicao = await ListaService.addToList(
-          new Pessoa({
-            nome: `${contact.pushname}`.trim() || contact.number,
-            baiana: false,
-            id: contact.id.user,
-          })
-        );
+        const posicao = await ListaService.addToList(pessoa);
 
-        await message.reply(
+        return await message.reply(
           `Entrou na lista! ✅\nSua escolha foi: Feijoada Carioca!\nVocê está na posição ${posicao} da lista.`,
           undefined,
           { quotedMessageId: message.id.id }
@@ -49,31 +52,56 @@ bot.on('message_create', async (message) => {
 
       if (/^baiana$/i.test(message.body)) {
         const contact = await message.getContact();
+        const pessoa = new Pessoa({
+          nome: `${contact.pushname}`.trim() || contact.number,
+          baiana: true,
+          id: contact.id.user,
+        });
+        if (ListaService.checkIfPessoaExists(pessoa))
+          return await message.reply(`Você já está na lista!`, undefined, {
+            quotedMessageId: message.id.id,
+          });
         await ListaService.removeFromList(contact.id.user);
-        const posicao = await ListaService.addToList(
-          new Pessoa({
-            nome: `${contact.pushname}`.trim() || contact.number,
-            baiana: true,
-            id: contact.id.user,
-          })
-        );
+        const posicao = await ListaService.addToList(pessoa);
 
-        await message.reply(
+        return await message.reply(
           `Entrou na lista! ✅\nSua escolha foi: Feijoada Baiana!\nVocê está na posição ${posicao} da lista.`,
           undefined,
           { quotedMessageId: message.id.id }
         );
       }
+
+      if (/^sair$/i.test(message.body)) {
+        const contact = await message.getContact();
+        const pessoa = new Pessoa({
+          nome: `${contact.pushname}`.trim() || contact.number,
+          baiana: true,
+          id: contact.id.user,
+        });
+        if (!ListaService.checkIfPessoaExists(pessoa))
+          return await message.reply(`Você não está na lista!`, undefined, {
+            quotedMessageId: message.id.id,
+          });
+        await ListaService.removeFromList(contact.id.user);
+        await message.reply(`Saiu da lista! ❌`, undefined, {
+          quotedMessageId: message.id.id,
+        });
+      }
     } else {
       if (/^carioca @\d+$/i.test(message.body)) {
         const contact = mencoes[0];
+        const pessoa = new Pessoa({
+          nome: `${contact.pushname}`.trim() || contact.number,
+          baiana: false,
+          id: contact.id.user,
+        });
+        if (ListaService.checkIfPessoaExists(pessoa))
+          return await message.reply(`${pessoa.nome} já está na lista!`, undefined, {
+            quotedMessageId: message.id.id,
+          });
         await ListaService.removeFromList(contact.id.user);
         const posicao = await ListaService.addToList(
-          new Pessoa({
-            nome: `${contact.pushname}`.trim() || contact.number,
-            baiana: false,
-            id: contact.id.user,
-          })
+          pessoa
         );
 
         await message.reply(
@@ -87,6 +115,15 @@ bot.on('message_create', async (message) => {
 
       if (/^baiana @\d+$/i.test(message.body)) {
         const contact = mencoes[0];
+        const pessoa = new Pessoa({
+          nome: `${contact.pushname}`.trim() || contact.number,
+          baiana: true,
+          id: contact.id.user,
+        });
+        if (ListaService.checkIfPessoaExists(pessoa))
+          return await message.reply(`${pessoa.nome} já está na lista!`, undefined, {
+            quotedMessageId: message.id.id,
+          });
         await ListaService.removeFromList(contact.id.user);
         const posicao = await ListaService.addToList(
           new Pessoa({
@@ -104,14 +141,26 @@ bot.on('message_create', async (message) => {
           { quotedMessageId: message.id.id }
         );
       }
-    }
 
-    if (/^sair$/i.test(message.body)) {
-      const contact = await message.getContact();
-      await ListaService.removeFromList(contact.id.user);
-      await message.reply(`Saiu da lista! ❌`, undefined, {
-        quotedMessageId: message.id.id,
-      });
+      if (/^sair @\d+$/i.test(message.body)) {
+        const contact = mencoes[0];
+        const pessoa = new Pessoa({
+          nome: `${contact.pushname}`.trim() || contact.number,
+          baiana: true,
+          id: contact.id.user,
+        });
+        if (!ListaService.checkIfPessoaExists(pessoa))
+          return await message.reply(`${pessoa.nome} não está na lista!`, undefined, {
+            quotedMessageId: message.id.id,
+          });
+        await ListaService.removeFromList(contact.id.user);
+
+        await message.reply(
+          `${contact.pushname || contact.number} removido lista! ❌\n`,
+          undefined,
+          { quotedMessageId: message.id.id }
+        );
+      }
     }
   }
 

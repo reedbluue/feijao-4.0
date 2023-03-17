@@ -54,16 +54,26 @@ export class ListaService {
     }
     static totalFeijoadasCariocas() {
         const qntCariocas = ListaService.list.filter((pessoa) => !pessoa.baiana).length;
-        const aPedir = Math.trunc((qntCariocas / 3));
-        const meia = Math.trunc((qntCariocas % 3)) >= 1 || (qntCariocas > 1 && qntCariocas < 3) ? 1 : 0;
-        ;
+        const aPedir = Math.trunc(qntCariocas / 3);
+        const meia = Math.trunc(qntCariocas % 3) >= 1 || (qntCariocas > 1 && qntCariocas < 3)
+            ? 1
+            : 0;
         return [aPedir, meia];
     }
     static totalFeijoadasBaianas() {
         const qntBaianas = ListaService.list.filter((pessoa) => pessoa.baiana).length;
-        const aPedir = Math.trunc((qntBaianas / 3));
-        const meia = Math.trunc((qntBaianas % 3)) >= 1 || (qntBaianas > 1 && qntBaianas < 3) ? 1 : 0;
+        const aPedir = Math.trunc(qntBaianas / 3);
+        const meia = Math.trunc(qntBaianas % 3) >= 1 || (qntBaianas > 1 && qntBaianas < 3)
+            ? 1
+            : 0;
         return [aPedir, meia];
+    }
+    static checkIfPessoaExists(pessoa) {
+        return ListaService.list.reduce((_acc, value) => {
+            if (value.nome == pessoa.nome && value.baiana == pessoa.baiana)
+                return true;
+            return false;
+        }, false);
     }
     static ativarLista() {
         ListaService.listaAtiva = true;

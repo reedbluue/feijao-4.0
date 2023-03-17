@@ -7,6 +7,8 @@ services:
       - feijao-net
     ports:
       - 1880:1880
+    depends_on:
+      - mysql
   mysql:
     image: mysql-feijao-4.0:latest
     networks:
@@ -22,13 +24,15 @@ services:
     ports:
       - 3000:3000
     environment:
-      GROUPS: '["Teste"]'
+      GROUPS: '["Teste", "Demonstração"]'
   grafana:
     image: grafana-feijao-4.0:latest
     networks:
       - feijao-net
     ports:
       - 3001:3000
+    depends_on:
+      - mysql
 networks:
   feijao-net:
 volumes:

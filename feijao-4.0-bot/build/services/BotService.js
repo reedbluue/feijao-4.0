@@ -33,38 +33,78 @@ bot.on('message_create', (message) => __awaiter(void 0, void 0, void 0, function
         if (!mencoes.length) {
             if (/^carioca$/i.test(message.body)) {
                 const contact = yield message.getContact();
-                yield ListaService.removeFromList(contact.id.user);
-                const posicao = yield ListaService.addToList(new Pessoa({
+                const pessoa = new Pessoa({
                     nome: `${contact.pushname}`.trim() || contact.number,
                     baiana: false,
                     id: contact.id.user,
-                }));
-                yield message.reply(`Entrou na lista! ✅\nSua escolha foi: Feijoada Carioca!\nVocê está na posição ${posicao} da lista.`, undefined, { quotedMessageId: message.id.id });
+                });
+                if (ListaService.checkIfPessoaExists(pessoa))
+                    return yield message.reply(`Você já está na lista!`, undefined, {
+                        quotedMessageId: message.id.id,
+                    });
+                yield ListaService.removeFromList(contact.id.user);
+                const posicao = yield ListaService.addToList(pessoa);
+                return yield message.reply(`Entrou na lista! ✅\nSua escolha foi: Feijoada Carioca!\nVocê está na posição ${posicao} da lista.`, undefined, { quotedMessageId: message.id.id });
             }
             if (/^baiana$/i.test(message.body)) {
                 const contact = yield message.getContact();
-                yield ListaService.removeFromList(contact.id.user);
-                const posicao = yield ListaService.addToList(new Pessoa({
+                const pessoa = new Pessoa({
                     nome: `${contact.pushname}`.trim() || contact.number,
                     baiana: true,
                     id: contact.id.user,
-                }));
-                yield message.reply(`Entrou na lista! ✅\nSua escolha foi: Feijoada Baiana!\nVocê está na posição ${posicao} da lista.`, undefined, { quotedMessageId: message.id.id });
+                });
+                if (ListaService.checkIfPessoaExists(pessoa))
+                    return yield message.reply(`Você já está na lista!`, undefined, {
+                        quotedMessageId: message.id.id,
+                    });
+                yield ListaService.removeFromList(contact.id.user);
+                const posicao = yield ListaService.addToList(pessoa);
+                return yield message.reply(`Entrou na lista! ✅\nSua escolha foi: Feijoada Baiana!\nVocê está na posição ${posicao} da lista.`, undefined, { quotedMessageId: message.id.id });
+            }
+            if (/^sair$/i.test(message.body)) {
+                const contact = yield message.getContact();
+                const pessoa = new Pessoa({
+                    nome: `${contact.pushname}`.trim() || contact.number,
+                    baiana: true,
+                    id: contact.id.user,
+                });
+                if (!ListaService.checkIfPessoaExists(pessoa))
+                    return yield message.reply(`Você não está na lista!`, undefined, {
+                        quotedMessageId: message.id.id,
+                    });
+                yield ListaService.removeFromList(contact.id.user);
+                yield message.reply(`Saiu da lista! ❌`, undefined, {
+                    quotedMessageId: message.id.id,
+                });
             }
         }
         else {
             if (/^carioca @\d+$/i.test(message.body)) {
                 const contact = mencoes[0];
-                yield ListaService.removeFromList(contact.id.user);
-                const posicao = yield ListaService.addToList(new Pessoa({
+                const pessoa = new Pessoa({
                     nome: `${contact.pushname}`.trim() || contact.number,
                     baiana: false,
                     id: contact.id.user,
-                }));
+                });
+                if (ListaService.checkIfPessoaExists(pessoa))
+                    return yield message.reply(`${pessoa.nome} já está na lista!`, undefined, {
+                        quotedMessageId: message.id.id,
+                    });
+                yield ListaService.removeFromList(contact.id.user);
+                const posicao = yield ListaService.addToList(pessoa);
                 yield message.reply(`${contact.pushname || contact.number} adicionado na lista! ✅\nA escolha foi: Feijoada Carioca!\nEstá na posição ${posicao} da lista.`, undefined, { quotedMessageId: message.id.id });
             }
             if (/^baiana @\d+$/i.test(message.body)) {
                 const contact = mencoes[0];
+                const pessoa = new Pessoa({
+                    nome: `${contact.pushname}`.trim() || contact.number,
+                    baiana: true,
+                    id: contact.id.user,
+                });
+                if (ListaService.checkIfPessoaExists(pessoa))
+                    return yield message.reply(`${pessoa.nome} já está na lista!`, undefined, {
+                        quotedMessageId: message.id.id,
+                    });
                 yield ListaService.removeFromList(contact.id.user);
                 const posicao = yield ListaService.addToList(new Pessoa({
                     nome: `${contact.pushname}`.trim() || contact.number,
@@ -73,13 +113,20 @@ bot.on('message_create', (message) => __awaiter(void 0, void 0, void 0, function
                 }));
                 yield message.reply(`${contact.pushname || contact.number} adicionado na lista! ✅\nA escolha foi: Feijoada Baiana!\nEstá na posição ${posicao} da lista.`, undefined, { quotedMessageId: message.id.id });
             }
-        }
-        if (/^sair$/i.test(message.body)) {
-            const contact = yield message.getContact();
-            yield ListaService.removeFromList(contact.id.user);
-            yield message.reply(`Saiu da lista! ❌`, undefined, {
-                quotedMessageId: message.id.id,
-            });
+            if (/^sair @\d+$/i.test(message.body)) {
+                const contact = mencoes[0];
+                const pessoa = new Pessoa({
+                    nome: `${contact.pushname}`.trim() || contact.number,
+                    baiana: true,
+                    id: contact.id.user,
+                });
+                if (!ListaService.checkIfPessoaExists(pessoa))
+                    return yield message.reply(`${pessoa.nome} não está na lista!`, undefined, {
+                        quotedMessageId: message.id.id,
+                    });
+                yield ListaService.removeFromList(contact.id.user);
+                yield message.reply(`${contact.pushname || contact.number} removido lista! ❌\n`, undefined, { quotedMessageId: message.id.id });
+            }
         }
     }
     if (/^lista atual$/i.test(message.body)) {
